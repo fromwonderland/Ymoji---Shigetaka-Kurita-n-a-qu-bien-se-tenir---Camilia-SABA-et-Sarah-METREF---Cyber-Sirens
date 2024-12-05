@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Traducteur Émoji ✨</title>
+    <link rel="icon" href="https://i.pinimg.com/736x/35/2d/ef/352defb7cba0d4a011d6ef87d18029ff.jpg" type="image/png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #001f3f; /* Thème de la nuit par défaut */
+            color: white;
+            transition: background-color 0.3s, color 0.3s;
+            position: relative; /* Pour que les bulles flottent au-dessus du fond */
+            overflow: hidden; /* Cache les émojis qui sortent du cadre */
+            height: 100vh; /* Assure que la hauteur de la page est 100% */
+        }
+
+        .content-container {
+            position: relative;
+            z-index: 10; /* En avant-plan */
+            text-align: center;
+            margin-top: 50px;
+            color: white;
+        }
+
+        .emoji-bubble {
+            position: absolute;
+            font-size: 30px;
+            opacity: 0.5; /* Opacité plus faible */
+            animation: floatBubble 10s linear infinite, dance 4s ease-in-out infinite; /* Animation verticale et danse */
+        }
+
+        @keyframes floatBubble {
+            0% {
+                top: -50px;
+                opacity: 0.5;
+            }
+            100% {
+                top: 100%;
+                opacity: 0.2;
+            }
+        }
+
+        @keyframes dance {
+            0% {
+                transform: translateX(-50px); /* Début à gauche */
+            }
+            50% {
+                transform: translateX(50px);  /* Milieu à droite */
+            }
+            100% {
+                transform: translateX(-50px); /* Retour à gauche */
+            }
+        }
+
+        input, button {
+            padding: 12px;
+            margin: 10px;
+            font-size: 18px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 300px;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #fff;
+            color: #001f3f;
+            font-size: 20px;
+        }
+
+        button:hover {
+            background-color: #001f3f;
+            color: white;
+        }
+
+        .emoji-output {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: white;
+            color: #001f3f;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+        }
+
+        .theme-container {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .theme-container button {
+            font-size: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .quiz-container {
+            margin-top: 30px;
+            display: none; /* Masqué par défaut */
+        }
+
+        .quiz-question {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .quiz-option {
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .quiz-option:hover {
+            transform: scale(1.2);
+        }
+
+        .home-container {
+            display: block;
+        }
+
+        .translator-container, .quiz-container {
+            display: none;
+        }
+
+        .return-button {
+            margin-top: 20px;
+        }
+
+        /* Différents thèmes */
+        .light-theme {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        .dark-theme {
+            background-color: #333;
+            color: #f8f9fa;
+        }
+
+        .blue-theme {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .green-theme {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .red-theme {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Animations pour les réponses */
+        .correct-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            animation: correctFade 2s ease-in-out;
+        }
+
+        .incorrect-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            animation: incorrectFade 2s ease-in-out;
+        }
+
+        @keyframes correctFade {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes incorrectFade {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Animation pour le score final */
+        .final-score-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            animation: finalScoreFade 2s ease-in-out;
+        }
+
+        @keyframes finalScoreFade {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .final-score {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body class="night-theme">
+    <div class="content-container home-container" id="home-container">
+        <h1>Choisissez l'option de votre choix</h1>
+        <button onclick="showTranslator()">🔄</button>
+        <button onclick="showQuiz()">🎮</button>
+        <div class="theme-container">
+            <button onclick="changeTheme('light-theme')">🌞</button>
+            <button onclick="changeTheme('dark-theme')">🌚</button>
+            <button onclick="changeTheme('blue-theme')">🔵</button>
+            <button onclick="changeTheme('green-theme')">🟢</button>
+            <button onclick="changeTheme('red-theme')">🔴</button>
+        </div>
+    </div>
+
+    <div class="content-container translator-container" id="translator-container">
+        <h1>✨ Traducteur Émoji ✨</h1>
+        <input type="text" id="inputText" placeholder="Tape ta phrase ici..." oninput="translateToEmoji()" />
+        <button onclick="copyToClipboard()">📝</button>
+        <div class="emoji-output" id="output"></div>
+        <button class="return-button" onclick="showHome()">Retour</button>
+    </div>
+
+    <div class="content-container quiz-container" id="quiz-container">
+        <h1>Quiz Émoji</h1>
+        <div class="quiz-question" id="quiz-question"></div>
+        <div class="quiz-options" id="quiz-options"></div>
+        <button onclick="nextQuestion()">Question suivante</button>
+        <button onclick="showHome()">Retour</button>
+        <div id="quiz-result" class="final-score"></div>
+    </div>
+
+    <script>
+        const emojiDictionary = {
+            "🍽️": ["manger", "mange", "manges", "mangeons", "mangez", "mangé", "mangerai", "mangeras", "mangera", "mangerons", "mangerez", "mangeront", "mangeais", "mangeait", "mangions", "mangiez", "mangerait", "mangerais", "mangerait", "mangerions", "mangeriez", "mangeraient", "mangeant", "que je mange", "que tu manges", "qu'il mange", "que nous mangions", "que vous mangiez", "qu'ils mangent"],
+            "😴": ["dormir", "dors", "dort", "dormons", "dormez", "dormi", "dormirai", "dormiras", "dormira", "dormirons", "dormirez", "dormiront", "dormais", "dormait", "dormions", "dormiez", "dormirait", "dormirais", "dormirait", "dormirions", "dormiriez", "dormiraient", "dormant", "que je dorme", "que tu dormes", "qu'il dorme", "que nous dormions", "que vous dormiez", "qu'ils dorment"],
+            "🏃": ["courir", "cours", "court", "courons", "courez", "couru", "courrai", "courras", "courra", "courrons", "courrez", "courront", "courais", "courait", "courions", "couriez", "courrait", "courrais", "courrait", "courrions", "courriez", "courraient", "courant", "que je coure", "que tu coures", "qu'il coure", "que nous courions", "que vous couriez", "qu'ils courent"],
+            "🚶": ["marcher", "marche", "marches", "marchons", "marchez", "marché", "marcherai", "marcheras", "marchera", "marcherons", "marcherez", "marcheront", "marchais", "marchait", "marchions", "marchiez", "marcherait", "marcherais", "marcherait", "marcherions", "marcheriez", "marcheraient", "marchant", "que je marche", "que tu marches", "qu'il marche", "que nous marchions", "que vous marchiez", "qu'ils marchent"],
+            "🗣️": ["parler", "parle", "parles", "parlons", "parlez", "parlé", "parlerai", "parleras", "parlera", "parlerons", "parlerez", "parleront", "parlais", "parlait", "parlions", "parliez", "parlerait", "parlerais", "parlerait", "parlerions", "parleriez", "parleraient", "parlant", "que je parle", "que tu parles", "qu'il parle", "que nous parlions", "que vous parliez", "qu'ils parlent"],
+            "🧹": ["nettoyer", "nettoie", "nettoies", "nettoyons", "nettoyez", "nettoyé", "nettoierai", "nettoieras", "nettoiera", "nettoierons", "nettoierez", "nettoieront", "nettoyais", "nettoyait", "nettoyions", "nettoyiez", "nettoierais", "nettoierait", "nettoierions", "nettoieriez", "nettoieraient", "nettoyant", "que je nettoie", "que tu nettoies", "qu'il nettoie", "que nous nettoyions", "que vous nettoyiez", "qu'ils nettoient"],
+            "🏊": ["nager", "nage", "nages", "nageons", "nagez", "nagé", "nagerai", "nageras", "nagera", "nagerons", "nagerez", "nageront", "nageais", "nageait", "nagions", "nagiez", "nagerais", "nagerait", "nagerions", "nageriez", "nageraient", "nageant", "que je nage", "que tu nages", "qu'il nage", "que nous nagions", "que vous nagiez", "qu'ils nagent"],
+            "📞": ["appeler", "appelle", "appelles", "appelons", "appelez", "appelé", "appellerai", "appelleras", "appellera", "appellerons", "appellerez", "appelleront", "appelais", "appelait", "appelions", "appeliez", "appellerais", "appellerait", "appellerions", "appelleriez", "appelleraient", "appelant", "que j'appelle", "que tu appelles", "qu'il appelle", "que nous appelions", "que vous appeliez", "qu'ils appellent"],
+            "🛒": ["acheter", "achète", "achètes", "achetons", "achetez", "acheté", "achèterai", "achèteras", "achètera", "achèterons", "achèterez", "achèteront", "achetais", "achetait", "achetions", "achetiez", "achèterais", "achèterait", "achèterions", "achèteriez", "achèteraient", "achetant", "que j'achète", "que tu achètes", "qu'il achète", "que nous achetions", "que vous achetiez", "qu'ils achètent"],
+            "🎨": ["dessiner", "dessine", "dessines", "dessinons", "dessinez", "dessiné", "dessinerai", "dessineras", "dessinera", "dessinerons", "dessinerez", "dessineront", "dessinais", "dessinait", "dessinions", "dessiniez", "dessinerais", "dessinerait", "dessinerions", "dessineriez", "dessineraient", "dessinant", "que je dessine", "que tu dessines", "qu'il dessine", "que nous dessinions", "que vous dessiniez", "qu'ils dessinent"],
+            "💻": ["coder", "code", "codes", "codons", "codez", "codé", "coderai", "codera", "coderas", "coderons", "coderez", "coderont", "codais", "codait", "codions", "codiez", "coderais", "coderait", "coderions", "coderiez", "coderaient", "codant", "que je code", "que tu codes", "qu'il code", "que nous codions", "que vous codiez", "qu'ils codent"],
+            "🎶": ["chanter", "chante", "chantes", "chantons", "chantez", "chanté", "chanterai", "chanteras", "chantera", "chanterons", "chanterez", "chanteront", "chantais", "chantait", "chantions", "chantiez", "chanterais", "chanterait", "chanterions", "chanteriez", "chanteraient", "chantant", "que je chante", "que tu chantes", "qu'il chante", "que nous chantions", "que vous chantiez", "qu'ils chantent"],
+            "📚": ["lire", "lis", "lit", "lisons", "lisez", "lu", "lirai", "liras", "lira", "lirons", "lirez", "liront", "lisais", "lisait", "lisions", "lisiez", "lirais", "lirait", "lirions", "liriez", "liraient", "lisant", "que je lise", "que tu lises", "qu'il lise", "que nous lisions", "que vous lisiez", "qu'ils lisent"],
+            "📝": ["écrire", "écris", "écrit", "écrivons", "écrivez", "écrit", "écrirai", "écriras", "écrira", "écrirons", "écrirez", "écriront", "écrivais", "écrivait", "écrivions", "écriviez", "écrirait", "écrirais", "écrirait", "écririons", "écririez", "écriraient", "écrivant", "que j'écrive", "que tu écrives", "qu'il écrive", "que nous écrivions", "que vous écriviez", "qu'ils écrivent"],
+            "🍕": ["pizza", "pizzas", "pizzeria", "pizzerias"],
+            "🍔": ["burger", "burgers", "hamburger", "hamburgers"],
+            "👟": ["chaussure", "chaussures", "sneaker", "sneakers"],
+            "👕": ["chemise", "chemises", "shirt", "shirts"],
+            "👖": ["pantalon", "pantalons", "jean", "jeans"],
+            "👗": ["robe", "robes", "dress", "dresses"],
+            "👠": ["chaussure", "chaussures", "shoe", "shoes"],
+            "👒": ["sac", "sacs", "bag", "bags"],
+            "🎒": ["sac à dos", "sacs à dos", "backpack", "backpacks"],
+            "💼": ["malette", "mallettes", "briefcase", "briefcases"],
+            "👓": ["lunettes", "lunette", "glasses", "glass"],
+            "🕶️": ["lunettes de soleil", "lunette de soleil", "sunglasses", "sunglass"],
+            "🎧": ["casque", "casques", "headphones", "headphone"],
+            "📱": ["téléphone", "téléphones", "phone", "phones"],
+            "💻": ["ordinateur", "ordinateurs", "computer", "computers"],
+            "🖥️": ["moniteur", "moniteurs", "monitor", "monitors"],
+            "📡": ["antenne", "antennes", "antenna", "antennas"],
+            "🛰️": ["satellite", "satellites", "satellite", "satellites"],
+            "🔧": ["clé", "clés", "key", "keys"],
+            "💾": ["disquette", "disquettes", "floppy disk", "floppy disks"],
+            "📀": ["cassette", "cassettes", "tape", "tapes"],
+            "💽": ["disque dur", "disques durs", "hard drive", "hard drives"],
+                    // animaux
+    "🦁": ["lion", "lions"],
+    "🐶": ["chien", "chiens"],
+    "🐱": ["chat", "chats"],
+    "🐰": ["lapin", "lapins"],
+    "🐻": ["ours", "ours"],
+    "🐼": ["panda", "pandas"],
+    "🐯": ["tigre", "tigres"],
+    "🐸": ["grenouille", "grenouilles", "crapaud","crapauds"],
+    "🦊": ["renard", "renards"],
+    "🐘": ["éléphant", "éléphants"],
+    "🦄": ["licorne", "licornes"],
+    "🦓": ["zèbre", "zèbres"],
+    "🦒": ["girafe", "girafes"],
+    "🐨": ["koala", "koalas"],
+    "🐮": ["vache", "vaches"],
+    "🐷": ["cochon", "cochons"],
+    "🐔": ["poulet", "poulets"],
+    "🦢": ["cygne", "cygnes"],
+    "🦉": ["hibou", "hiboux"],
+    "🐦": ["oiseau", "oiseaux"],
+    "🐧": ["pingouin", "pingouins"],
+    "🦜": ["perroquet", "perroquets"],
+    "🐍": ["serpent", "serpents"],
+    "🐢": ["tortue", "tortues"],
+    "🦕": ["dinosaure", "dinosaures"],
+    "🐟": ["poisson", "poissons"],
+    "🦑": ["calmar", "calmars"],
+    "🐙": ["pieuvre", "pieuvres"],
+    "🦐": ["crevette", "crevettes"],
+    "🦞": ["homard", "homards"],
+    "🦀": ["crabe", "crabes"],
+    "🦋": ["papillon", "papillons"],
+    "🐴": ["cheval", "chevaux"],
+    // vêtements
+    "👚": ["chemise", "chemises"],
+    "👕": ["t-shirt", "t-shirts"],
+    "👖": ["jean", "jeans"],
+    "👗": ["robe", "robes"],
+    "👘": ["kimono", "kimonos"],
+    "👙": ["maillot de bain", "maillots de bain"],
+    "👠": ["chaussure", "chaussures"],
+    "👡": ["sandale", "sandales"],
+    "👢": ["botte", "bottes"],
+    "👟": ["basket", "baskets"],
+    "🎩": ["chapeau", "chapeaux"],
+    "👒": ["chapeau de femme", "chapeaux de femme"],
+    "🎓": ["chapeau de diplômé", "chapeaux de diplômés"],
+    "🧢": ["casquette", "casquettes"],
+    "👑": ["couronne", "couronnes"],
+    "🧥": ["manteau", "manteaux"],
+    "🧣": ["écharpe", "écharpes"],
+    "🧤": ["gants", "gants"],
+    "🧳": ["valise", "valises"],
+    "👝": ["pochette", "pochettes"],
+    "👛": ["porte-monnaie", "porte-monnaies"],
+    "👜": ["sac à main", "sacs à main"],
+    "💼": ["mallette", "malettes"],
+    "🎽": ["maillot de sport", "maillots de sport"],
+    "🥻": ["sarouel", "sarouels"],
+    "🩳": ["short", "shorts"],
+    "🩱": ["maillot de bain une pièce", "maillots de bain une pièce"],
+    "👙": ["bikini", "bikinis"],
+    // nourriture
+    "🍎": ["pomme", "pommes"],
+    "🍌": ["banane", "bananes"],
+    "🍊": ["orange", "oranges"],
+    "🍇": ["raisin", "raisins"],
+    "🍉": ["pastèque", "pastèques"],
+    "🍓": ["fraise", "fraises"],
+    "🍒": ["cerise", "cerises"],
+    "🍑": ["pêche", "pêches"],
+    "🍍": ["ananas", "ananas"],
+    "🥭": ["mangue", "mangues"],
+    "🍋": ["citron", "citrons"],
+    "🍈": ["melon", "melons"],
+    "🍆": ["aubergine", "aubergines"],
+    "🥑": ["avocat", "avocats"],
+    "🥒": ["concombre", "concombres"],
+    "🌽": ["maïs", "maïs"],
+    "🥕": ["carotte", "carottes"],
+    "🍄": ["champignon", "champignons"],
+    "🥔": ["pomme de terre", "pommes de terre"],
+    "🍞": ["pain", "pains"],
+    "🥖": ["baguette", "baguettes"],
+    "🥨": ["bretzel", "bretzels"],
+    "🍪": ["cookie", "cookies"],
+    "🍩": ["beignet", "beignets"],
+    "🍫": ["chocolat", "chocolats"],
+    "🍬": ["bonbon", "bonbons"],
+    "🍭": ["sucette", "sucettes"],
+    "🍮": ["flan", "flans"],
+    "🍦": ["glace", "glaces"],
+    "🍧": ["granité", "granités"],
+    "🍨": ["sundae", "sundaes"],
+    "🍪": ["biscuit", "biscuits"],
+    "🍰": ["gâteau", "gâteaux"],
+    "🍫": ["tablette de chocolat", "tablettes de chocolat"],
+    "🍡": ["brochette", "brochettes"],
+    "🥧": ["tarte", "tartes"],
+    "🍲": ["soupe", "soupes"],
+    "🍛": ["curry", "currys"],
+    "🍜": ["ramen", "ramens"],
+    "🍝": ["pasta", "pâtes"],
+    "🍠": ["patate douce", "patates douces"],
+    "🍥": ["narutomaki", "narutomakis"],
+    "🍚": ["riz", "rizs"],
+    "🍙": ["onigiri", "onigiris"],
+    "🍘": ["cracker de riz", "crackers de riz"],
+    "🥪": ["sandwich", "sandwiches"],
+    "🌮": ["taco", "tacos"],
+    "🌯": ["burrito", "burritos"],
+    
+    "🍔": ["hamburger", "hamburgers"],
+    "🍟": ["frites", "frites"],
+    "🥩": ["steak", "steaks"],
+    "🍗": ["poulet", "poulets"],
+    "🍖": ["viande", "viandes"],
+    "🥓": ["bacon", "bacon"],
+    "🍳": ["œuf", "œufs"],
+    "🧀": ["fromage", "fromages"],
+    "🥗": ["salade", "salades"],
+    "🥬": ["laitue", "laitues"],
+    "🌯": ["wrap", "wraps"],
+    "🍺": ["bière", "bières"],
+    "🍻": ["chope", "chopes"],
+    "🥂": ["coupe de champagne", "coupes de champagne"],
+    "🍷": ["vin", "vins"],
+    "🍸": ["cocktail", "cocktails"],
+    "🍹": ["cocktail tropical", "cocktails tropicaux"],
+    "🍾": ["bouteille de champagne", "bouteilles de champagne"],
+    "🍶": ["saké", "sakés"],
+    "🥛": ["lait", "laits"],
+    "🧃": ["jus", "jus"],
+    "🍵": ["thé", "thés"],
+    "☕": ["café", "cafés"],
+    // émotions
+    "😊": ["content", "contents","heureuses", "joyeux", "joyeuses", "souriant", "souriante", "ravi", "ravie"],
+    "😄": ["rire", "rient", "souriant", "sourire", "joyeux", "joyeuse", "heureux", "heureuse"],
+    "😁": ["grincheux", "grincheuse", "généreux", "généreuse", "rire", "rient"],
+    "😃": ["souriant", "joyeux", "content", "contentes", "exubérant", "exubérante"],
+    "😆": ["rigoler", "rire", "rigolant", "rires", "souriant"],
+    "😂": ["rire", "rient", "pouffer de rire", "exploser de rire", "rire aux éclats"],
+    "😅": ["soulagement", "soulagé", "relaxé", "réconforté"],
+    "🤣": ["mourir de rire", "rire fort", "rire aux éclats", "désopilant"],
+    "😜": ["espiègle", "espiègle", "drôle", "farceur", "farceuse"],
+    "😝": ["moquer", "moqueur", "moqueuse", "rire", "rient"],
+    "😛": ["tirer la langue", "amusant", "rire", "rient"],
+    "😌": ["soulagement", "calme", "détendu", "relaxé", "reposé"],
+    "😓": ["fatigue", "fatigué", "épuisé", "épuisée", "harassé", "harassée"],
+    "😔": [ "désespéré", "désespérée", "mélancolique"],
+    "😞": ["déçu", "déçus"],
+    "😢": ["pleurer", "pleurs", "émotion", "émotions"],
+    "😭": ["triste","tristes", "pleurer", "larmes", "chagrin", "tristesse", "désespoir", "désespéré", "désespérée"],
+    "😖": ["désastre", "désespéré", "désespérée", "souffrance", "souffrant"],
+    "😣": ["fatigue", "épuisement", "difficulté", "difficultés", "stressé", "stressée"],
+    "😞": [ "soupir", "désappointé", "désappointée"],
+    "😡": ["en colère", "colère", "fâché", "fâchée", "furieux", "furieuse", "irrité", "irritée"],
+    "😠": ["colère", "irritation", "agacé", "agacée", "fâché", "fâchée"],
+    "🤬": ["enragé", "enragée", "furieux", "furieuse", "hors de soi", "hors de soi"],
+    "😤": ["frustration", "frustré", "frustrée", "énervé", "énervée", "mécontent", "mécontente"],
+    "😩": ["épuisé", "épuisée", "fatigué", "fatiguée", "désespéré", "désespérée"],
+    "😫": [ "désespéré", "désespérée", "fatigué", "fatiguée"],
+    "😳": ["embarrassé", "embarrassée", "honte", "honteux", "honteuse"],
+    "😦": ["choqué", "choquée", "surpris", "surprise", "étonné", "étonnée"],
+    "😧": ["angoissé", "angoissée", "inquiet", "inquiète", "terrifié", "terrifiée"],
+    "😮": ["étonné", "étonnée", "surpris", "surprise", "choqué", "choquée"],
+    "😲": ["stupéfait", "stupéfaite", "choqué", "choquée", "étonné", "étonnée"],
+    "🤯": ["choqué", "stupéfait", "sidéré", "sidérée", "surpris", "surprise"],
+    "😱": ["peur", "effrayé", "effrayée", "terreur", "terrifié", "terrifiée"],
+    "😨": ["peur", "effrayé", "effrayée", "anxieux", "anxieuse", "effroi"],
+    "😰": ["anxieux", "anxieuse", "inquiet", "inquiète", "nervosité", "nerveux", "nerveuse"],
+    "😥": ["soulagement", "calme", "reposé", "réconforté", "rassuré"],
+    "😓": ["fatigué", "fatiguée", "stressé", "stressée", "épuisé", "épuisée"],
+    "😩": ["épuisé", "épuisée", "fatigué", "fatiguée", "désespéré", "désespérée"],
+    // météo
+    "☀️": ["soleil", "ensoleillé", "ensoleillée", "clair", "claire", "beau temps", "beaux temps"],
+    "🌤️": ["partiellement ensoleillé", "ciel partiellement dégagé", "temps partiellement nuageux", "nuages", "nuageux", "partiellement nuageux"],
+    "🌞": ["ensoleillé", "brillant", "brillante", "chaud", "chaude", "soleil éclatant", "lumière du soleil"],
+    "🌦️": ["averse", "pluvieux", "pluvieuse", "légère pluie", "pluies intermittentes"],
+    "🌩️": ["orage", "tonnerre", "foudre", "pluie avec orage", "pluies orageuses", "tempête électrique"],
+    "🌨️": ["neige", "neigeux", "neigeuse", "tempête de neige", "chute de neige", "neige tombante"],
+    "❄️": ["neige", "flocons de neige", "chute de neige", "temps neigeux", "neige légère"],
+    "🌬️": ["vent", "venteux", "ventée", "rafales de vent", "vent fort", "souffle du vent", "air frais"],
+    "💨": ["vent", "souffle du vent", "air en mouvement", "rafales", "vent fort", "vent violent"],
+    "🌫️": ["brouillard", "brume", "brouillardeux", "brouillard épais", "brumeux", "ciel brumeux", "visibilité réduite"],
+    "🌈": ["arc-en-ciel", "après la pluie", "pluie et soleil", "ciel coloré", "pluie suivie de soleil"],
+    "☁️": ["nuage", "nuageux", "nuageuse", "ciel couvert", "ciel nuageux", "nuage lourd", "temps nuageux"],
+    "🌪️": ["tornade", "tempête", "cyclone", "ouragan", "tornade violente", "tempête de vent"],
+    "🌍": ["température mondiale", "climat", "climatique", "évolution du climat", "changement climatique"],
+     "🌡️": ["thermomètre", "température", "chaleur", "froid"]
+        };
+
+        function translateToEmoji() {
+            const inputText = document.getElementById("inputText").value.toLowerCase();
+            const words = inputText.split(" ");
+            let outputText = '';
+
+            words.forEach(word => {
+                Object.keys(emojiDictionary).forEach(emoji => {
+                    if (emojiDictionary[emoji].includes(word)) {
+                        outputText += emoji + ' ';
+                    }
+                });
+            });
+
+            document.getElementById("output").textContent = outputText || "Pas d'émojis correspondants.";
+        }
+
+        function copyToClipboard() {
+            const outputText = document.getElementById("output");
+            const range = document.createRange();
+            range.selectNode(outputText);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+        }
+
+        function changeTheme(theme) {
+            document.body.className = theme;
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            for (let i = 0; i < 10; i++) {
+                createEmojiBubble();
+            }
+        });
+
+        function createEmojiBubble() {
+            const emojiBubbles = document.querySelectorAll('.emoji-bubble');
+            if (emojiBubbles.length >= 50) {
+                return;
+            }
+
+            const emojis = ["🌙", "🌟", "💻", "🖥️", "📡", "🛰️", "🔧", "💾", "📀", "💽"];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const bubble = document.createElement('span');
+            bubble.textContent = randomEmoji;
+            bubble.className = 'emoji-bubble';
+            bubble.style.fontSize = `${Math.random() * 30 + 20}px`;
+            bubble.style.left = `${Math.random() * window.innerWidth}px`;
+            bubble.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            document.body.appendChild(bubble);
+
+            // Supprime les émojis après l'animation
+            bubble.addEventListener('animationend', () => {
+                bubble.remove();
+            });
+        }
+
+        // Générer des émojis toutes les 500ms
+        setInterval(createEmojiBubble, 1000);
+
+        // Quiz Émoji
+        const quizQuestions = [
+            {
+                question: "Quel est l'intrus ?",
+                options: ["🍔", "🍕", "🍟", "🍎"],
+                answer: "🍎"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["🚀", "🛸", "🛰️", "🌌"],
+                answer: "🌌"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["📚", "📖", "📕", "📗"],
+                answer: "📗"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["❤️", "💔", "💕", "💗"],
+                answer: "💗"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["✈️", "🛩️", "🛫", "🛬"],
+                answer: "🛬"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["🚗", "🚕", "🚙", "🚌"],
+                answer: "🚌"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["🏠", "🏡", "🏘️", "🏚️"],
+                answer: "🏚️"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["📞", "📱", "📲", "📴"],
+                answer: "📴"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["📷", "📹", "🎥", "📸"],
+                answer: "📸"
+            },
+            {
+                question: "Quel est l'intrus ?",
+                options: ["⛰️", "🏔️", "🗻", "🌄"],
+                answer: "🌄"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const question = quizQuestions[currentQuestionIndex];
+            document.getElementById("quiz-question").textContent = question.question;
+            const optionsContainer = document.getElementById("quiz-options");
+            optionsContainer.innerHTML = '';
+            question.options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.textContent = option;
+                optionElement.className = 'quiz-option';
+                optionElement.onclick = () => checkAnswer(option);
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        function checkAnswer(selectedOption) {
+            const question = quizQuestions[currentQuestionIndex];
+            if (selectedOption === question.answer) {
+                score++;
+                showCorrectAnimation();
+            } else {
+                showIncorrectAnimation();
+            }
+            setTimeout(nextQuestion, 2000); // Passe automatiquement à la question suivante après 2 secondes
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizQuestions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function showCorrectAnimation() {
+            const animationContainer = document.createElement('div');
+            animationContainer.className = 'correct-animation';
+            animationContainer.textContent = "👏👍";
+            document.body.appendChild(animationContainer);
+            setTimeout(() => {
+                document.body.removeChild(animationContainer);
+            }, 2000);
+        }
+
+        function showIncorrectAnimation() {
+            const animationContainer = document.createElement('div');
+            animationContainer.className = 'incorrect-animation';
+            animationContainer.textContent = "😢👎";
+            document.body.appendChild(animationContainer);
+            setTimeout(() => {
+                document.body.removeChild(animationContainer);
+            }, 2000);
+        }
+
+        function showFinalScore() {
+            const resultContainer = document.getElementById("quiz-result");
+            resultContainer.textContent = `Votre score est de ${score}/10`;
+            resultContainer.style.display = 'block';
+
+            const finalAnimationContainer = document.createElement('div');
+            finalAnimationContainer.className = 'final-score-animation';
+
+            if (score >= 8) {
+                finalAnimationContainer.textContent = "🎉🏆";
+            } else if (score >= 5) {
+                finalAnimationContainer.textContent = "😐";
+            } else {
+                finalAnimationContainer.textContent = "😞";
+            }
+
+            document.body.appendChild(finalAnimationContainer);
+            setTimeout(() => {
+                document.body.removeChild(finalAnimationContainer);
+            }, 2000);
+        }
+
+        function showTranslator() {
+            document.getElementById("home-container").style.display = 'none';
+            document.getElementById("translator-container").style.display = 'block';
+            document.getElementById("quiz-container").style.display = 'none';
+        }
+
+        function showQuiz() {
+            document.getElementById("home-container").style.display = 'none';
+            document.getElementById("translator-container").style.display = 'none';
+            document.getElementById("quiz-container").style.display = 'block';
+            currentQuestionIndex = 0;
+            score = 0;
+            loadQuestion();
+            document.getElementById("quiz-result").style.display = 'none';
+        }
+
+        function showHome() {
+            document.getElementById("home-container").style.display = 'block';
+            document.getElementById("translator-container").style.display = 'none';
+            document.getElementById("quiz-container").style.display = 'none';
+        }
+    </script>
+</body>
+</html>
